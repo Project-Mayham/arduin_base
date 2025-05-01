@@ -9,18 +9,21 @@
 #define WLAN_PASS       "Deneyap.2023T"       
 #define AIO_SERVER      "io.adafruit.com"
 #define AIO_SERVERPORT  1883                  
-#define AIO_USERNAME    "Carabelli"         // Adafruit IO kullanici ismi
-#define AIO_KEY         "aio_qJvL01BEvmuIrp08xRF8Hyk1klwN"         // Adafruit IO kullanici anahtari
+#define AIO_USERNAME    "yagizyagiz"         
+#define AIO_KEY         "aio_iLri45U1UoOMKD5JBpuRmKuIrw3i"        
 
-#define DHTPIN 0         // DHT11 data pin connected to GPIO 4
+#define DHTPIN D0         
 #define DHTTYPE DHT11
 
-#define USE_MQTT false  // MQTT/bulut sunucu kullanmak icin true
+#define USE_MQTT true  
+
+#define MQ_PIN A0        
 
 WiFiClient client;
 Adafruit_MQTT_Client mqtt(&client, AIO_SERVER, AIO_SERVERPORT, AIO_USERNAME, AIO_KEY);       
 Adafruit_MQTT_Publish sicaklik = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/sicaklik");
 Adafruit_MQTT_Subscribe buton_durumu = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/buton-durumu");
+Adafruit_MQTT_Publish gaz_seviyesi = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/gaz-seviyesi");
 DHT dht(DHTPIN, DHTTYPE);
 
 void MQTT_connect() {
@@ -50,7 +53,7 @@ void MQTT_connect() {
 }
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
   delay(10);
   
   Serial.println(); Serial.println(); Serial.print(WLAN_SSID); Serial.print(" kablosuz agina baglaniliyor");
@@ -98,16 +101,29 @@ void loop() {
 
   float sicaklik_degeri = dht.readTemperature(); 
   Serial.print(F("\nSicaklik degeri gonderiliyor "));
-  Serial.print(sicaklik_degeri);
+  // Serial.print(dht.readHumidity(true));
   Serial.print("..."); 
-
+  
+  // Gas sensor reading
+  int gaz_degeri = analogRead(MQ_PIN);
+  Serial.print(F("\nGaz seviyesi: "));
+  Serial.print(gaz_degeri);
+  
   if(USE_MQTT && mqtt.connected()) {
-    if(!sicaklik.publish(sicaklik_degeri)) 
-    {
-      Serial.println(F(" Gonderilemedi!"));
+    // Temperature publishing
+    if(!sicaklik.publish(sicaklik_degeri)) {
+      Serial.println(F(" Sicaklik gonderilemedi!"));
     }
     else {
-      Serial.println(F(" Gonderildi"));
+      Serial.println(F(" Sicaklik gonderildi"));
+    }
+    
+    // Gas value publishing
+    if(!gaz_seviyesi.publish(gaz_degeri)) {
+      Serial.println(F(" Gaz seviyesi gonderilemedi!"));
+    }
+    else {
+      Serial.println(F(" Gaz seviyesi gonderildi"));
     }
   } else {
     Serial.println(F(" (Bulut baglantisi yok veya devre disi, sadece konsola yazildi)"));
