@@ -10,7 +10,7 @@
 // #define AIO_SERVER      "io.adafruit.com"
 // #define AIO_SERVERPORT  1883                  
 // #define AIO_USERNAME    "User123123"         
-// #define AIO_KEY         ""        
+// #define AIO_KEY         "aio_vZrb55T1ugn4w0bX49Upjotftmio"        
 
 // #define DHTPIN A1         
 // #define DHTTYPE DHT11
